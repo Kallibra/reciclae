@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { colors } from './colors';
+import { COLORS } from './colors'; // certo: COLORS
 
 export const formStyles = StyleSheet.create({
   container: {
     marginTop: 20,
   },
   label: {
-    color: colors.textDark,
+    color: COLORS.textDark, // <-- corrigido
     fontSize: 13,
     marginBottom: 5,
   },
@@ -19,14 +19,14 @@ export const formStyles = StyleSheet.create({
     color: '#333',
   },
   button: {
-    backgroundColor: colors.primary,
+    backgroundColor: COLORS.primary, // <-- corrigido
     paddingVertical: 12,
     borderRadius: 25,
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 15,
   },

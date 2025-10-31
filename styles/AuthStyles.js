@@ -1,27 +1,28 @@
+// styles/AuthStyles.js
 import { StyleSheet, Dimensions } from 'react-native';
-import { colors } from './colors';
+import { COLORS } from './colors';  // ← CORRETO: './colors' e 'COLORS'
 
 const { width } = Dimensions.get('window');
 
 export const authStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
   },
   header: {
-    backgroundColor: colors.primary,
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     paddingVertical: 40,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
   title: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 28,
     fontWeight: 'bold',
   },
   subtitle: {
-    color: '#fff',
+    color: COLORS.secondary,
     fontSize: 12,
     marginTop: 4,
   },
@@ -33,7 +34,7 @@ export const authStyles = StyleSheet.create({
     flexDirection: 'row',
     width: width * 0.8,
     height: 45,
-    backgroundColor: '#eee',
+    backgroundColor: COLORS.light,
     borderRadius: 25,
     position: 'relative',
     overflow: 'hidden',
@@ -45,12 +46,12 @@ export const authStyles = StyleSheet.create({
     zIndex: 2,
   },
   switchText: {
-    color: colors.gray,
+    color: COLORS.darkGray,
     fontWeight: '600',
     fontSize: 13,
   },
   switchTextActive: {
-    color: colors.textLight,
+    color: COLORS.white,
   },
   switchSlider: {
     position: 'absolute',
@@ -58,7 +59,7 @@ export const authStyles = StyleSheet.create({
     left: 0,
     width: '50%',
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: COLORS.primary,
     borderRadius: 25,
     zIndex: 1,
   },
