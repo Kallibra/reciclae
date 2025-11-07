@@ -1,18 +1,39 @@
 // screens/LoginForm.js
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { COLORS } from '../styles/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginForm({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) {
+        Alert.alert('Erro', 'Nenhum usuário cadastrado');
+        return;
+      }
+
+      const user = JSON.parse(userData);
+
+      if (email === user.email && password === user.password) {
+        Alert.alert('Sucesso', `Bem-vindo, ${user.nickname}!`);
+        navigation.navigate('Main', { screen: 'HomeTab' });
+      } else {
+        Alert.alert('Erro', 'Email ou senha incorretos');
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Falha ao fazer login');
+    }
+  };
 
   return (
     <View>
       <TextInput
         style={styles.input}
         placeholder="EMAIL/USUÁRIO"
-        placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -21,22 +42,27 @@ export default function LoginForm({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="SENHA"
-        placeholderTextColor="#aaa"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.buttonText}>ENTRAR</Text>
+    
+      <TouchableOpacity style={styles.forgot}>
+        <Text style={styles.forgotText} onPress={async () => {
+          await AsyncStorage.removeItem('user');
+          Alert.alert('Senha resetada', 'Você pode se cadastrar novamente');
+        }}>
+          ESQUECI MINHA SENHA
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.forgot}>
-        <Text style={styles.forgotText}>ESQUECI MINHA SENHA</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>ENTRAR</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   input: {
@@ -60,13 +86,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  forgot: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  forgotText: {
-    color: COLORS.primary,
-    fontWeight: 'bold',
   },
 });

@@ -24,6 +24,8 @@ export default function AppNavigator() {
         <Stack.Screen name="TipoDePessoa" component={TipoDePessoaScreen} />
         <Stack.Screen name="FinalizarCadastro" component={FinalizarCadastroScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="RegisterType" component={RegisterType} />
+        <Stack.Screen name="FinalizarCadastro" component={FinalizarCadastroScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

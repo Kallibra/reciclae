@@ -13,28 +13,28 @@ export default function RegisterForm({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="QUAL SEU NOME COMPLETO?"
-        placeholderTextColor="#aaa"
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
         placeholder="COMO PODEMOS LHE CHAMAR (APELIDO)?"
-        placeholderTextColor="#aaa"
         value={nickname}
         onChangeText={setNickname}
       />
       <TextInput
         style={styles.input}
         placeholder="QUAL SEU MELHOR E-MAIL?"
-        placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('RegisterType')}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('RegisterRole', { email, nickname })} 
+        >
         <Text style={styles.buttonText}>VAMOS CONTINUAR?</Text>
       </TouchableOpacity>
     </View>
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 16,
-    fontSize: 14,
-    marginBottom: 15, 
+    fontSize: 16,
+    marginBottom: 15,
   },
   button: {
     backgroundColor: COLORS.primary,

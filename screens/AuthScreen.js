@@ -1,54 +1,95 @@
 // screens/AuthScreen.js
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  StyleSheet,
+  Dimensions,
+  Platform,
+} from 'react-native';
 import { COLORS } from '../styles/colors';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
+const { width } = Dimensions.get('window');
+const TOGGLE_WIDTH = width - 80;
+const BUTTON_WIDTH = TOGGLE_WIDTH / 2;
+
 export default function AuthScreen({ navigation }) {
   const [isLogin, setIsLogin] = useState(true);
-  const [animation] = useState(new Animated.Value(0));
+  const animation = useRef(new Animated.Value(0)).current;
 
   const toggle = (toLogin) => {
     Animated.timing(animation, {
-      toValue: toLogin ? 0 : 1,   
-      duration: 300,
+      toValue: toLogin ? 0 : 1,
+      duration: 400,
       useNativeDriver: true,
     }).start();
     setIsLogin(toLogin);
   };
 
-  // AJUSTE: largura do toggle
-  const translateX = animation.interpolate({ 
-    inputRange: [0, 1], 
-    outputRange: [0, 163], // ← Aqui é pra ajustar entre os dois botões 
+  const translateX = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, BUTTON_WIDTH],
   });
 
   const sliderColor = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [COLORS.primary, COLORS.accent],
+    outputRange: ['#0B5B29', '#007ACC'], // verde → azul
+  });
+
+  const leftTextColor = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#FFFFFF', '#444444'],
+  });
+
+  const rightTextColor = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#444444', '#FFFFFF'],
   });
 
   return (
     <View style={styles.container}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.title}>RECICLAÊ</Text>
-        <Text style={styles.subtitle}>VALOR PRA VOCÊ. VIDA PRA NATUREZA</Text>
+      <View style={styles.headerLogo}>
+        <Text style={styles.logoText}>
+          RECICL<Text style={styles.ae}>AÊ</Text>
+        </Text>
+        <Text style={styles.slogan}>
+          Valor pra você. <Text style={styles.sloganHighlight}>Vida pra natureza</Text>
+        </Text>
       </View>
 
-      {/* TOGGLE ANIMADO */}
+      {/* TOGGLE FUNCIONANDO */}
       <View style={styles.toggleContainer}>
-        <Animated.View style={[styles.slider, { backgroundColor: sliderColor, transform: [{ translateX }] }]} />
+        {/* SLIDER COLORIDO POR BAIXO - CORRIGIDO */}
+        <Animated.View
+          style={[
+            styles.slider,
+            {
+              backgroundColor: sliderColor,
+              transform: [{ translateX }],
+            },
+          ]}
+        />
+
+        {/* BOTÕES TRANSPARENTES */}
         <TouchableOpacity style={styles.toggleBtn} onPress={() => toggle(true)}>
-          <Text style={[styles.toggleText, isLogin && styles.active]}>TENHO CONTA</Text>
+          <Animated.Text style={[styles.toggleText, { color: leftTextColor }]}>
+            TENHO CONTA
+          </Animated.Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.toggleBtn} onPress={() => toggle(false)}>
-          <Text style={[styles.toggleText, !isLogin && styles.active]}>QUERO ME CADASTRAR</Text>
+          <Animated.Text style={[styles.toggleText, { color: rightTextColor }]}>
+            QUERO ME CADASTRAR
+          </Animated.Text>
         </TouchableOpacity>
       </View>
 
-      {/* FORMULÁRIO */}
+      {/* FORM */}
       <View style={styles.formContainer}>
         {isLogin ? <LoginForm navigation={navigation} /> : <RegisterForm navigation={navigation} />}
       </View>
@@ -59,61 +100,88 @@ export default function AuthScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary, // ← FUNDO VERDE ESCURO
+    backgroundColor: '#0B5B29',
   },
-  header: {
+
+  // HEADER
+  headerLogo: {
     alignItems: 'center',
-    paddingTop: 80,
-    paddingBottom: 40,
+    paddingTop: 70,
   },
-  title: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    color: '#fff',
+  logoText: {
+    fontSize: 38,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#a8e6a1',
-    marginTop: 8,
+  ae: {
     fontStyle: 'italic',
+    fontWeight: '700',
   },
+  slogan: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    marginTop: 8,
+  },
+  sloganHighlight: {
+    color: '#FF6B35',
+    fontWeight: '700',
+  },
+
+  // TOGGLE CORRIGIDO
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#e9ecef', 
-    borderRadius: 100, 
-    marginHorizontal: 40, 
-    padding: 5, 
+    height: 56,
+    marginHorizontal: 40,
+    marginTop: 40,
+    borderRadius: 30,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: '#CCCCCC',
+    backgroundColor: '#F8F8F8',
     position: 'relative',
-    overflow: 'hidden', // ← IMPORTANTE
   },
-  slider: { // A BOLHA ANIMADA 
+  slider: {
     position: 'absolute',
-    width: '52%', 
-    height: '122%', 
-    borderRadius: 100,
     left: 0,
+    top: 0,
+    width: BUTTON_WIDTH,
+    height: '100%',
+    borderRadius: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
   },
   toggleBtn: {
     flex: 1,
-    paddingVertical: 14,
+    justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
+    backgroundColor: 'transparent',
   },
   toggleText: {
     fontWeight: 'bold',
-    color: '#666',
-    fontSize: 14,
+    fontSize: 13.5,
+    letterSpacing: 0.8,
   },
-  active: {
-    color: '#fff',
-  },
+
+  // FORM
   formContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    marginTop: 40,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    backgroundColor: '#FFFFFF',
+    marginTop: 30,
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
     paddingHorizontal: 40,
-    paddingTop: 40,
+    paddingTop: 50,
+    overflow: 'hidden',
   },
 });
