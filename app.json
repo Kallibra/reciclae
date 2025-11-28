@@ -4,10 +4,10 @@
     "slug": "ReciclAe",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/logo-arvore.png",
+    "icon": "./assets/logo-arvore.png",  // Certifique-se de converter karma.jpeg pra PNG quadrado
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/karma.jpeg",  // Converta sticker.webp pra PNG
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,18 +18,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",  // Converta pra PNG quadrado
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.ReciclAe",
       "versionCode": 3,
       "androidNavigationBar": {
-        "visible": "immersive"
+        "visible": "immersive"  // Mantido pra esconder barra
       }
-      // ← REMOVEMOS androidStatusBar e statusBar (não existem mais)
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-navigation-bar",  // ← Novo: Habilita androidNavigationBar
+      "expo-system-ui"  // ← Novo: Pra status bar, se precisar adicionar androidStatusBar depois
     ],
     "extra": {
       "eas": {

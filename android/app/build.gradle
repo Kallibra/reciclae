@@ -87,13 +87,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.recicla"
+    namespace 'com.anonymous.ReciclAe'
     defaultConfig {
-        applicationId "com.recicla"
+        applicationId 'com.anonymous.ReciclAe'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.0.2"
     }
     signingConfigs {
         debug {
