@@ -25,7 +25,7 @@ import HistoricoScreen from './screens/perfil/HistoricoScreen';
 import EditarPerfilScreen from './screens/perfil/EditarPerfilScreen';
 import PoliticaPrivacidadeScreen from './screens/perfil/PoliticaPrivacidadeScreen';
 import ConfiguracoesScreen from './screens/perfil/ConfiguracoesScreen';
-import SobreoApp from './screens/perfil/SobreScreen.js';
+import SobreScreen from './screens/SobreScreen';
 import ConvidarAmigosScreen from './screens/perfil/ConvidarAmigosScreen';
 
 const Stack = createStackNavigator();
@@ -82,9 +82,8 @@ export default function App() {
               {/* TELAS DO PERFIL — agora registradas corretamente */}
               <Stack.Screen name="Historico" component={HistoricoScreen} options={{ headerShown: false }} />
               <Stack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="SobreApp" component={SobreoApp} options={{ headerShown: false }} />
+              <Stack.Screen name="Sobre" component={SobreScreen} options={{ headerShown: false }} />
               <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="AjudaSuporte" component={AjudaSuporteScreen} options={{ headerShown: false }} />
               <Stack.Screen name="ConvidarAmigos" component={ConvidarAmigosScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
           </NavigationContainer>
