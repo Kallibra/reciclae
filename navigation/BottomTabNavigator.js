@@ -1,90 +1,74 @@
 // navigation/BottomTabNavigator.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView } from 'react-native-safe-area-context'; // ← ADICIONE
+import { SafeAreaView } from 'react-native-safe-area-context';   // ← IMPORTANTE
+import { View, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../styles/colors';
 
 import HomeScreen from '../screens/HomeScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import AgendaScreen from '../screens/AgendaScreen';
+import AnunciarMaterial from '../screens/AnunciarMaterial';
 import VerAnuncios from '../screens/VerAnuncios';
+import FeedScreen from '../screens/FeedScreen';
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
+  const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await AsyncStorage.getItem('user');
+        if (data) setUserRole(JSON.parse(data).role);
+      } catch (e) { console.log(e); }
+      finally { setLoading(false); }
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      {/* ↑ Ignora só o bottom → o TabBar cuida dele */}
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: {
-            backgroundColor: '#fff',
-            borderTopWidth: 1,
-            borderTopColor: '#eee',
-            height: 80,
-            paddingBottom: 20,     // ← ESPAÇO PRA BARRA DO CELULAR
-            paddingTop: 10,
-            position: 'absolute',  // ← FIXO NA TELA
-            bottom: 0,
-            left: 0,
-            right: 0,
-          },
           tabBarActiveTintColor: COLORS.primary,
           tabBarInactiveTintColor: '#888',
-          tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+          tabBarStyle: {
+            height: 80,
+            paddingBottom: 20,
+            paddingTop: 10,
+            backgroundColor: '#fff',
+          },
         }}
       >
-        <Tab.Screen
-          name="HomeTab"
-          component={HomeScreen}
-          options={{
-            tabBarLabel: 'Início',
-            tabBarIcon: ({ color, focused }) => (
-              <Icon name={focused ? 'home' : 'home-outline'} size={24} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="PerfilTab"
-          component={PerfilScreen}
-          options={{
-            tabBarLabel: 'Perfil',
-            tabBarIcon: ({ color, focused }) => (
-              <Icon name={focused ? 'person' : 'person-outline'} size={24} color={color} />
-            ),
-          }}
-        />
+        {/* suas tabs aqui (igual antes) */}
+        <Tab.Screen name="HomeTab" component={HomeScreen} options={{ tabBarLabel: 'Início', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'home' : 'home-outline'} size={24} color={color} /> }} />
+        <Tab.Screen name="PerfilTab" component={PerfilScreen} options={{ tabBarLabel: 'Perfil', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'person' : 'person-outline'} size={24} color={color} /> }} />
         <Tab.Screen
           name="RecicleTab"
-          component={HomeScreen}
+          component={userRole === 'producer' ? AnunciarMaterial : VerAnuncios}
           options={{
-            tabBarLabel: 'Recicle',
-            tabBarIcon: () => (
-              <Icon name="leaf" size={28} color="#fff" style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 30 }} />
+            tabBarLabel: userRole === 'producer' ? 'Reciclar' : 'Buscar',
+            tabBarIcon: ({focused}) => (
+              <Icon name="leaf" size={28} color="#fff" style={{ backgroundColor: focused ? COLORS.primary : '#ccc', padding: 12, borderRadius: 30 }} />
             ),
           }}
         />
-        <Tab.Screen
-          name="AgendaTab"
-          component={AgendaScreen}
-          options={{
-            tabBarLabel: 'Agenda',
-            tabBarIcon: ({ color, focused }) => (
-              <Icon name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="FeedTab"
-          component={VerAnuncios}
-          options={{
-            tabBarLabel: 'Feed',
-            tabBarIcon: ({ color, focused }) => (
-              <Icon name={focused ? 'newspaper' : 'newspaper-outline'} size={24} color={color} />
-            ),
-          }}
-        />
+        <Tab.Screen name="AgendaTab" component={AgendaScreen} options={{ tabBarLabel: 'Agenda', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} /> }} />
+        <Tab.Screen name="FeedTab" component={FeedScreen} options={{ tabBarLabel: 'Feed', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'newspaper' : 'newspaper-outline'} size={24} color={color} /> }} />
       </Tab.Navigator>
     </SafeAreaView>
   );

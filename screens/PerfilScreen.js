@@ -14,6 +14,15 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../styles/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { wp, hp, moderateScale } from '../utils/scale';
+
+// IMPORTS DAS NOVAS TELAS (já organizadas na pasta perfil)
+import HistoricoScreen from './perfil/HistoricoScreen';
+import EditarPerfilScreen from './perfil/EditarPerfilScreen';
+import PoliticaPrivacidadeScreen from './perfil/PoliticaPrivacidadeScreen';
+import ConfiguracoesScreen from './perfil/ConfiguracoesScreen';
+import AjudaSuporteScreen from './perfil/AjudaSuporteScreen';
+import ConvidarAmigosScreen from './perfil/ConvidarAmigosScreen';
 
 export default function PerfilScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -29,7 +38,6 @@ export default function PerfilScreen({ navigation }) {
       if (data) {
         setUser(JSON.parse(data));
       } else {
-        // Caso não tenha user (primeira vez), cria um padrão
         const defaultUser = {
           nickname: 'Valdeliane',
           role: 'producer',
@@ -43,7 +51,6 @@ export default function PerfilScreen({ navigation }) {
   };
 
   const pickImage = async () => {
-    // Pedir permissões (galeria + câmera)
     const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
 
@@ -82,8 +89,6 @@ export default function PerfilScreen({ navigation }) {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const uri = result.assets[0].uri;
-
-      // Garante que user nunca seja null
       const currentUser = user || {};
       const updatedUser = { ...currentUser, foto: uri };
 
@@ -99,23 +104,26 @@ export default function PerfilScreen({ navigation }) {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('user');
-    navigation.replace('Auth'); // replace pra não voltar com back
+    navigation.replace('Auth');
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* HEADER COM FOTO */}
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: hp(15) }}
+    >
       <View style={styles.header}>
         <Pressable style={styles.photoContainer} onPress={pickImage}>
           {user?.foto ? (
             <Image source={{ uri: user.foto }} style={styles.photo} />
           ) : (
             <View style={styles.photoPlaceholder}>
-              <Icon name="person" size={60} color="#ccc" />
+              <Icon name="person" size={moderateScale(60)} color="#ccc" />
             </View>
           )}
           <View style={styles.cameraOverlay}>
-            <Icon name="camera" size={26} color="#fff" />
+            <Icon name="camera" size={moderateScale(26)} color="#fff" />
           </View>
         </Pressable>
 
@@ -124,70 +132,76 @@ export default function PerfilScreen({ navigation }) {
           {user?.role === 'producer' ? 'Produtor' : 'Sucateiro'}
         </Text>
 
-        {/* STATS */}
         <View style={styles.stats}>
           <View style={styles.stat}>
-            <Icon name="star" size={22} color="#ffd700" />
+            <Icon name="star" size={moderateScale(22)} color="#ffd700" />
             <Text style={styles.statValue}>4.8</Text>
           </View>
           <View style={styles.stat}>
-            <Icon name="leaf" size={22} color={COLORS.primary} />
+            <Icon name="leaf" size={moderateScale(22)} color={COLORS.primary} />
             <Text style={styles.statValue}>150kg</Text>
           </View>
           <View style={styles.stat}>
-            <Icon name="trophy" size={22} color="#28a745" />
+            <Icon name="trophy" size={moderateScale(22)} color="#28a745" />
             <Text style={styles.statValue}>Top 10</Text>
           </View>
         </View>
       </View>
 
-      {/* MENU */}
       <View style={styles.menu}>
         <Pressable
           style={[styles.menuItem, activeMenu === 'historico' && styles.active]}
-          onPress={() => setActiveMenu('historico')}
+          onPress={() => {
+            setActiveMenu('historico');
+            navigation.navigate('Historico');
+          }}
         >
-          <Icon name="time" size={24} color={activeMenu === 'historico' ? COLORS.primary : '#666'} />
+          <Icon name="time" size={moderateScale(24)} color={activeMenu === 'historico' ? COLORS.primary : '#666'} />
           <Text style={[styles.menuText, activeMenu === 'historico' && styles.activeText]}>
             Histórico
           </Text>
         </Pressable>
+
         <Pressable
           style={[styles.menuItem, activeMenu === 'editar' && styles.active]}
-          onPress={() => setActiveMenu('editar')}
+          onPress={() => {
+            setActiveMenu('editar');
+            navigation.navigate('EditarPerfil');
+          }}
         >
-          <Icon name="create" size={24} color={activeMenu === 'editar' ? COLORS.primary : '#666'} />
+          <Icon name="create" size={moderateScale(24)} color={activeMenu === 'editar' ? COLORS.primary : '#666'} />
           <Text style={[styles.menuText, activeMenu === 'editar' && styles.activeText]}>
             Editar Perfil
           </Text>
         </Pressable>
       </View>
 
-      {/* OPÇÕES EXTRAS */}
       <View style={styles.options}>
-        <Pressable style={styles.optionItem}>
-          <Icon name="shield-checkmark" size={24} color="#666" />
+        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('PoliticaPrivacidade')}>
+          <Icon name="shield-checkmark" size={moderateScale(24)} color="#666" />
           <Text style={styles.optionText}>Política de Privacidade</Text>
-          <Icon name="chevron-forward" size={20} color="#ccc" />
+          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
         </Pressable>
-        <Pressable style={styles.optionItem}>
-          <Icon name="settings" size={24} color="#666" />
+
+        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('Configuracoes')}>
+          <Icon name="settings" size={moderateScale(24)} color="#666" />
           <Text style={styles.optionText}>Configurações do App</Text>
-          <Icon name="chevron-forward" size={20} color="#ccc" />
+          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
         </Pressable>
-        <Pressable style={styles.optionItem}>
-          <Icon name="help-circle" size={24} color="#666" />
+
+        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('AjudaSuporte')}>
+          <Icon name="help-circle" size={moderateScale(24)} color="#666" />
           <Text style={styles.optionText}>Ajuda e Suporte</Text>
-          <Icon name="chevron-forward" size={20} color="#ccc" />
+          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
         </Pressable>
-        <Pressable style={styles.optionItem}>
-          <Icon name="share-social" size={24} color="#666" />
+
+        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('ConvidarAmigos')}>
+          <Icon name="share-social" size={moderateScale(24)} color="#666" />
           <Text style={styles.optionText}>Convidar Amigos</Text>
-          <Icon name="chevron-forward" size={20} color="#ccc" />
+          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
         </Pressable>
       </View>
 
-      {/* SAIR */}
       <Pressable style={styles.logout} onPress={handleLogout}>
         <Text style={styles.logoutText}>Sair da Conta</Text>
       </Pressable>
@@ -199,7 +213,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   header: {
     alignItems: 'center',
-    paddingVertical: 50,
+    paddingVertical: hp(6),
     backgroundColor: '#fff',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -211,20 +225,20 @@ const styles = StyleSheet.create({
   },
   photoContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: hp(2),
   },
   photo: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(17),
     borderWidth: 6,
     borderColor: '#fff',
     backgroundColor: '#eee',
   },
   photoPlaceholder: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: wp(34),
+    height: wp(34),
+    borderRadius: wp(17),
     backgroundColor: '#eee',
     justifyContent: 'center',
     alignItems: 'center',
@@ -246,43 +260,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
-  name: { fontSize: 28, fontWeight: '900', color: COLORS.primary, marginTop: 8 },
-  type: { fontSize: 16, color: '#666', marginTop: 4 },
-  stats: { flexDirection: 'row', gap: 50, marginTop: 20 },
+  name: { fontSize: moderateScale(28), fontWeight: '900', color: COLORS.primary, marginTop: hp(1) },
+  type: { fontSize: moderateScale(16), color: '#666', marginTop: hp(0.5) },
+  stats: { flexDirection: 'row', gap: wp(12), marginTop: hp(2.5) },
   stat: { alignItems: 'center' },
-  statValue: { fontSize: 16, fontWeight: 'bold', color: COLORS.primary, marginTop: 5 },
-  menu: { paddingHorizontal: 20, marginTop: 20 },
+  statValue: { fontSize: moderateScale(16), fontWeight: 'bold', color: COLORS.primary, marginTop: hp(0.5) },
+  menu: { paddingHorizontal: wp(5), marginTop: hp(3) },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: moderateScale(16),
     backgroundColor: '#fff',
     borderRadius: 14,
-    marginBottom: 8,
+    marginBottom: hp(1),
     elevation: 3,
   },
   active: { backgroundColor: '#f0f8f0', borderWidth: 2, borderColor: COLORS.primary },
-  menuText: { marginLeft: 16, fontSize: 16, fontWeight: '500' },
+  menuText: { marginLeft: wp(4), fontSize: moderateScale(16), fontWeight: '500' },
   activeText: { color: COLORS.primary, fontWeight: 'bold' },
-  options: { paddingHorizontal: 20, marginTop: 10 },
+  options: { paddingHorizontal: wp(5), marginTop: hp(2) },
   optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: moderateScale(16),
     backgroundColor: '#fff',
     borderRadius: 14,
-    marginBottom: 8,
+    marginBottom: hp(1),
     elevation: 2,
   },
-  optionText: { flex: 1, marginLeft: 16, fontSize: 16, color: '#333' },
+  optionText: { flex: 1, marginLeft: wp(4), fontSize: moderateScale(16), color: '#333' },
   logout: {
-    margin: 20,
+    margin: wp(5),
     backgroundColor: '#dc3545',
-    padding: 18,
+    paddingVertical: moderateScale(18),
     borderRadius: 14,
     alignItems: 'center',
     elevation: 5,
   },
-  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(16) },
 });

@@ -4,30 +4,33 @@ import MapView, { Marker, Polygon } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../styles/colors';
 import { PanGestureHandler } from 'react-native-gesture-handler';
-import { View, SafeAreaView, StyleSheet, Animated, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { View, SafeAreaView, StyleSheet, Animated, ScrollView, TouchableOpacity, Text, Dimensions } from 'react-native';
+
+const { height: screenHeight } = Dimensions.get('window'); // Novo: Para calcular tamanhos dinâmicos baseados na tela
 
 export default function HomeScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [reciclagem, setReciclagem] = useState(0);
   const [bairroStatus, setBairroStatus] = useState(0);
+  const [anuncios, setAnuncios] = useState([]); // Para coletores
   const [activeTab, setActiveTab] = useState('ranking');
   const [loading, setLoading] = useState(true);
 
-  const translateY = useRef(new Animated.Value(180)).current;
-  const drawerFullHeight = 380;
-  const headerHeight = 60;
+  const drawerFullHeight = screenHeight * 0.5; // 50% da altura da tela para o drawer
+  const headerHeight = screenHeight * 0.08; // 8% para o header
+  const translateY = useRef(new Animated.Value(drawerFullHeight * 0.5)).current; // Inicial proporcional
 
   useEffect(() => {
     loadUserAndProgress().finally(() => setLoading(false));
     const unsubscribe = navigation.addListener('focus', () => {
-    // Se veio do RecicleTab, abre a gaveta
-    if (navigation.getState().routes[0].name === 'RecicleTab') {
-      Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
-    }
-  });
-  return unsubscribe;
-}, [navigation]);
-
+      // Verifica se veio de RecicleTab de forma mais robusta
+      const currentRoute = navigation.getState()?.routes?.[navigation.getState().index]?.name;
+      if (currentRoute === 'RecicleTab') {
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const loadUserAndProgress = async () => {
     try {
@@ -39,6 +42,13 @@ export default function HomeScreen({ navigation }) {
         const status = u.role === 'producer' ? 60 : 30;
         setReciclagem(kg);
         setBairroStatus(status);
+
+        if (u.role === 'coletor') {
+          const anunciosData = await AsyncStorage.getItem('anuncios');
+          if (anunciosData) {
+            setAnuncios(JSON.parse(anunciosData).filter(a => a.status === 'disponivel'));
+          }
+        }
       }
     } catch (error) {
       console.log('Erro ao carregar dados', error);
@@ -86,124 +96,144 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const renderTabContent = () => {
+    const isProducer = user?.role === 'producer';
+    switch (activeTab) {
+      case 'ranking':
+        return (
+          <View style={styles.panel}>
+            <Text style={styles.item}>1º {isProducer ? 'Kalebe - 150kg produzidos' : 'João - 120kg coletados'}</Text>
+            <Text style={styles.item}>2º {isProducer ? 'João - 120kg' : 'Maria - 100kg'}</Text>
+            <Text style={styles.item}>3º {isProducer ? 'Maria - 100kg' : 'Pedro - 90kg'}</Text>
+          </View>
+        );
+      case 'historico':
+        return (
+          <View style={styles.panel}>
+            <Text style={styles.item}>10/04 - {isProducer ? '5kg Plástico vendidos' : '3kg Papel coletados'}</Text>
+            <Text style={styles.item}>08/04 - {isProducer ? '3kg Papel' : '5kg Metal'}</Text>
+          </View>
+        );
+      case 'dicas':
+        return (
+          <View style={styles.panel}>
+            <Text style={styles.item}>Separe o lixo úmido do seco</Text>
+            <Text style={styles.item}>Lave embalagens antes de descartar</Text>
+            <Text style={styles.item}>{isProducer ? 'Anuncie materiais limpos para melhor preço' : 'Busque anúncios próximos para otimizar rotas'}</Text>
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* MAPA */}
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: -1.365,
-          longitude: -48.372,
-          latitudeDelta: 0.03,
-          longitudeDelta: 0.03,
-        }}
-      >
-        <Polygon
-          coordinates={bairroAnanindeua}
-          fillColor={corBairro}
-          strokeColor="#000"
-          strokeWidth={2}
-        />
-        <Marker
-          coordinate={{ latitude: -1.365, longitude: -48.372 }}
-          title="Você está aqui"
-          pinColor={COLORS.primary}
-        />
-      </MapView>
+      {loading ? (
+        <View style={styles.loading}>
+          <Text>Carregando...</Text>
+        </View>
+      ) : (
+        <>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: -1.365,
+              longitude: -48.372,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+          >
+            {user?.role === 'producer' && (
+              <Polygon
+                coordinates={bairroAnanindeua}
+                fillColor={corBairro}
+                strokeColor={COLORS.primary}
+              />
+            )}
 
-      {/* GAVETA */}
-      <PanGestureHandler
-        onGestureEvent={onGestureEvent}
-        onHandlerStateChange={onHandlerStateChange}
-      >
-        <Animated.View style={[styles.drawer, { transform: [{ translateY }] }]}>
-          <View style={styles.header}>
-            <View style={styles.handle} />
-            <View style={styles.tabBar}>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === 'ranking' && styles.activeTab]}
-                onPress={() => setActiveTab('ranking')}
-              >
-                <Text style={[styles.tabText, activeTab === 'ranking' && styles.activeTabText]}>RANKING</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === 'historico' && styles.activeTab]}
-                onPress={() => setActiveTab('historico')}
-              >
-                <Text style={[styles.tabText, activeTab === 'historico' && styles.activeTabText]}>HISTÓRICO</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === 'dicas' && styles.activeTab]}
-                onPress={() => setActiveTab('dicas')}
-              >
-                <Text style={[styles.tabText, activeTab === 'dicas' && styles.activeTabText]}>DICAS</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            {user?.role === 'coletor' && anuncios.map((anuncio, index) => (
+              <Marker
+                key={index}
+                coordinate={{ latitude: -1.365 + (index * 0.001), longitude: -48.372 + (index * 0.001) }}
+                title={`Anúncio: ${anuncio.endereco}`}
+                description={Object.entries(anuncio.materiais).map(([tipo, qtd]) => qtd > 0 ? `${qtd}kg ${tipo}` : '').join(', ')}
+                onPress={() => navigation.navigate('Chat', { anuncio })}
+              />
+            ))}
+          </MapView>
 
-          <ScrollView style={styles.content}>
-            {activeTab === 'ranking' && (
-              <View style={styles.panel}>
-                <Text style={styles.item}>1º Kalebe - 150kg</Text>
-                <Text style={styles.item}>2º João - 120kg</Text>
-                <Text style={styles.item}>3º Maria - 100kg</Text>
+          <PanGestureHandler onGestureEvent={onGestureEvent} onHandlerStateChange={onHandlerStateChange}>
+            <Animated.View style={[styles.drawer, { height: drawerFullHeight, transform: [{ translateY }] }]}>
+              <View style={[styles.header, { height: headerHeight }]}>
+                <View style={styles.handle} />
+                <View style={styles.tabBar}>
+                  <TouchableOpacity
+                    style={[styles.tab, activeTab === 'ranking' && styles.activeTab]}
+                    onPress={() => setActiveTab('ranking')}
+                  >
+                    <Text style={[styles.tabText, activeTab === 'ranking' && styles.activeTabText]}>RANKING</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tab, activeTab === 'historico' && styles.activeTab]}
+                    onPress={() => setActiveTab('historico')}
+                  >
+                    <Text style={[styles.tabText, activeTab === 'historico' && styles.activeTabText]}>HISTÓRICO</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tab, activeTab === 'dicas' && styles.activeTab]}
+                    onPress={() => setActiveTab('dicas')}
+                  >
+                    <Text style={[styles.tabText, activeTab === 'dicas' && styles.activeTabText]}>DICAS</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            )}
-            
-            {activeTab === 'historico' && (
-              <View style={styles.panel}>
-                <Text style={styles.item}>10/04 - 5kg Plástico</Text>
-                <Text style={styles.item}>08/04 - 3kg Papel</Text>
-              </View>
-            )}
-            {activeTab === 'dicas' && (
-              <View style={styles.panel}>
-                <Text style={styles.item}>Separe o lixo úmido do seco</Text>
-                <Text style={styles.item}>Lave embalagens antes de descartar</Text>
-              </View>
-            )}
-          </ScrollView>
-        </Animated.View>
-      </PanGestureHandler>
+
+              <ScrollView style={styles.content}>
+                {renderTabContent()}
+              </ScrollView>
+            </Animated.View>
+          </PanGestureHandler>
+        </>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' }, // Novo: Para loading responsivo
   map: { flex: 1 },
 
-  // GAVETA
+  // GAVETA (drawer)
   drawer: {
     position: 'absolute',
-    bottom: 80, // espaço pro TabBar
+    bottom: 80, // Espaço pro TabBar
     left: 0,
     right: 0,
-    height: 380,
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   header: {
-    height: 60,
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   handle: {
     alignSelf: 'center',
-    width: 40,
+    width: '20%', // % para escalar
     height: 5,
     backgroundColor: '#ddd',
     borderRadius: 3,
-    marginTop: 8,
+    marginTop: '2%', // % da tela
   },
   tabBar: {
     flex: 1,
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#eee',
-    marginTop: 8,
+    marginTop: '2%',
   },
   tab: {
     flex: 1,
@@ -225,12 +255,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 15,
+    padding: '4%', // % para padding responsivo
   },
-  panel: {},
+  panel: { flex: 1 },
   item: {
     fontSize: 15,
     color: '#333',
-    marginBottom: 12,
+    marginBottom: '3%', // % para espaçamento
   },
 });

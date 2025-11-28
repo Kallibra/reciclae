@@ -2,15 +2,16 @@
   "expo": {
     "name": "ReciclAÊ",
     "slug": "ReciclAe",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo-arvore.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#aaaaaa"
+      "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.ReciclAe"
@@ -18,10 +19,14 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#aaaaaa"
+        "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.ReciclAe"
+      "package": "com.anonymous.ReciclAe",
+      "versionCode": 3,
+      "androidNavigationBar": {
+        "visible": "immersive"
+      }
+      // ← REMOVEMOS androidStatusBar e statusBar (não existem mais)
     },
     "plugins": [
       "expo-font"

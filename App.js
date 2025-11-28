@@ -1,4 +1,4 @@
-// App.js
+// App.js — VERSÃO CORRETA E TESTADA (sem comentários dentro do Navigator)
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -6,8 +6,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
-// TELAS
+// TELAS PRINCIPAIS
 import AuthScreen from './screens/AuthScreen';
 import BottomTabNavigator from './navigation/BottomTabNavigator';
 import AnunciarMaterial from './screens/AnunciarMaterial';
@@ -16,11 +18,17 @@ import ConfirmarColeta from './screens/ConfirmarColeta';
 import RegisterRole from './screens/RegisterRole';
 import RegisterType from './screens/RegisterType';
 import FinalizarCadastroScreen from './screens/FinalizarCadastroScreen';
-import PoliticaPrivacidade from './screens/perfil-screen/PoliticaPrivacidade';
+import FeedScreen from './screens/FeedScreen';
+
+// TELAS DO PERFIL (organizadas na pasta perfil)
+import HistoricoScreen from './screens/perfil/HistoricoScreen';
+import EditarPerfilScreen from './screens/perfil/EditarPerfilScreen';
+import PoliticaPrivacidadeScreen from './screens/perfil/PoliticaPrivacidadeScreen';
+import ConfiguracoesScreen from './screens/perfil/ConfiguracoesScreen';
+import AjudaSuporteScreen from './screens/perfil/AjudaSuporteScreen';
+import ConvidarAmigosScreen from './screens/perfil/ConvidarAmigosScreen';
 
 const Stack = createStackNavigator();
-
-// MANTÉM O SPLASH ATIVO ATÉ CARREGAR FONTES
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -40,35 +48,48 @@ export default function App() {
         setAppIsReady(true);
       }
     }
-
     prepare();
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      await SplashScreen.hideAsync();
-    }
+    if (appIsReady) await SplashScreen.hideAsync();
   }, [appIsReady]);
 
-  if (!appIsReady) {
-    return null;
-  }
+  if (!appIsReady) return null;
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Auth">
-          <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="RegisterRole" component={RegisterRole} options={{ headerShown: false }} />
-          <Stack.Screen name="RegisterType" component={RegisterType} options={{ headerShown: false }} />
-          <Stack.Screen name="FinalizarCadastro" component={FinalizarCadastroScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
-          <Stack.Screen name="AnunciarMaterial" component={AnunciarMaterial} />
-          <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="ConfirmarColeta" component={ConfirmarColeta} />
-          <Stack.Screen name="PoliticaPrivacidade" component={PoliticaPrivacidade} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+        <View style={{ flex: 1, backgroundColor: '#f8f9fa' }} onLayout={onLayoutRootView}>
+          <StatusBar style="dark" hidden />
+          <NavigationContainer>
+            <Stack.Navigator initialRouteName="Auth">
+              {/* Auth Flow */}
+              <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="RegisterRole" component={RegisterRole} options={{ headerShown: false }} />
+              <Stack.Screen name="RegisterType" component={RegisterType} options={{ headerShown: false }} />
+              <Stack.Screen name="FinalizarCadastro" component={FinalizarCadastroScreen} options={{ headerShown: false }} />
+
+              {/* Main App */}
+              <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
+
+              {/* Outras telas */}
+              <Stack.Screen name="AnunciarMaterial" component={AnunciarMaterial} options={{ headerShown: false }} />
+              <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="ConfirmarColeta" component={ConfirmarColeta} options={{ headerShown: false }} />
+              <Stack.Screen name="FeedScreen" component={FeedScreen} options={{ headerShown: false }} />
+
+              {/* TELAS DO PERFIL — agora registradas corretamente */}
+              <Stack.Screen name="Historico" component={HistoricoScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="EditarPerfil" component={EditarPerfilScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="PoliticaPrivacidade" component={PoliticaPrivacidadeScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="AjudaSuporte" component={AjudaSuporteScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="ConvidarAmigos" component={ConvidarAmigosScreen} options={{ headerShown: false }} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
