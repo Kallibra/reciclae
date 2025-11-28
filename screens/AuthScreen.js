@@ -1,4 +1,4 @@
-// screens/AuthScreen.js
+// screens/AuthScreen.js #O que parece estar funcionando
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sloganHighlight: {
-    color: '#FF6B35',
+    color: '#1b7718ff',
     fontWeight: '700',
   },
 

@@ -33,9 +33,6 @@ export default function RegisterRole({ navigation, route }) {
         <Text style={styles.buttonText}>EU COLETO MATERIAL RECICLÁVEL E QUERO COMPRAR</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.nextButton}>
-        <Text style={styles.nextText}>VAMOS EM FRENTE</Text>
-      </TouchableOpacity>
     </View>
   );
 }

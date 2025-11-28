@@ -21,7 +21,7 @@ import HistoricoScreen from './perfil/HistoricoScreen';
 import EditarPerfilScreen from './perfil/EditarPerfilScreen';
 import PoliticaPrivacidadeScreen from './perfil/PoliticaPrivacidadeScreen';
 import ConfiguracoesScreen from './perfil/ConfiguracoesScreen';
-import AjudaSuporteScreen from './perfil/AjudaSuporteScreen';
+import AjudaSuporteScreen from './perfil/SobreScreen.js';
 import ConvidarAmigosScreen from './perfil/ConvidarAmigosScreen';
 
 export default function PerfilScreen({ navigation }) {

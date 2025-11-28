@@ -1,8 +1,39 @@
 // screens/FinalizarCadastroScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Modal,
+  ActivityIndicator,
+  Keyboard,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
 import { COLORS } from '../styles/colors';
+
+// Funções de máscara
+const formatPhone = (value) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{4})\d+?$/, '$1');
+};
+
+const formatDate = (value) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '$1/$2')
+    .replace(/(\d{2})\/(\d{2})(\d)/, '$1/$2/$3')
+    .replace(/\/\d{4}$/, (match) => match);
+};
+
+const formatCEP = (value) => {
+  return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{3})\d+?$/, '$1');
+};
 
 export default function FinalizarCadastroScreen({ navigation, route }) {
   const { role, type, nickname, email } = route.params || {};
@@ -12,43 +43,111 @@ export default function FinalizarCadastroScreen({ navigation, route }) {
   const [cep, setCep] = useState('');
   const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
+  const [uf, setUf] = useState('');
   const [complemento, setComplemento] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showTips, setShowTips] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-const handleRegister = async () => {
-  if (!contact || !birthDate || !cep || !password || !confirmPassword) {
-    Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
-    return;
-  }
-  if (password.length < 8) {
-    Alert.alert('Erro', 'A senha deve ter pelo menos 8 caracteres');
-    return;
-  }
-  if (password !== confirmPassword) {
-    Alert.alert('Erro', 'As senhas não coincidem');
-    return;
-  }
+  // Busca endereço pelo CEP
+  const buscarCEP = async (cepLimpo) => {
+    if (cepLimpo.length !== 8) return;
 
-  try {
-    // SALVA O USUÁRIO NO CELULAR
-    await AsyncStorage.setItem('user', JSON.stringify({
-      email: route.params.email,     // ← AQUI ESTAVA FALTANDO!
-      password: password,
-      nickname: route.params.nickname,
-      role: role,
-      type: type,
-      bairro: 'Ananindeua',
-    }));
+    setLoading(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await response.json();
 
-    Alert.alert('Sucesso!', 'Cadastro concluído com sucesso!', [
-      { text: 'OK', onPress: () => navigation.navigate('Auth') }
-    ]);
-  } catch (error) {
-    Alert.alert('Erro', 'Falha ao salvar cadastro');
-  }
-};
+      if (!data.erro) {
+        setBairro(data.bairro || '');
+        setCidade(data.localidade || '');
+        setUf(data.uf || '');
+      } else {
+        Alert.alert('CEP não encontrado', 'Verifique o CEP digitado');
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível buscar o endereço');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length === 8) {
+      buscarCEP(cepLimpo);
+    }
+  }, [cep]);
+
+  const handleRegister = async () => {
+    Keyboard.dismiss();
+
+    if (!contact && !Alert.alert('Atenção', 'O contato é recomendado. Deseja continuar sem?', [
+      { text: 'Não', style: 'cancel' },
+      { text: 'Sim', onPress: () => salvarCadastro() },
+    ])) return;
+
+    if (!birthDate || birthDate.length !== 10) {
+      Alert.alert('Erro', 'Preencha a data de nascimento corretamente (dd/mm/aaaa)');
+      return;
+    }
+
+    if (!cep || cep.length !== 9) {
+      Alert.alert('Erro', 'Preencha o CEP corretamente');
+      return;
+    }
+
+    if (!password || !confirmPassword) {
+      Alert.alert('Erro', 'Preencha as senhas');
+      return;
+    }
+
+    if (password.length < 8) {
+      Alert.alert('Erro', 'A senha deve ter no mínimo 8 caracteres');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem');
+      return;
+    }
+
+    if (!bairro || !cidade) {
+      Alert.alert('Erro', 'Preencha bairro e cidade (ou verifique o CEP)');
+      return;
+    }
+
+    salvarCadastro();
+  };
+
+  const salvarCadastro = async () => {
+    try {
+      const userData = {
+        email,
+        password,
+        nickname,
+        role, // 'producer' ou 'coletor'
+        type, // 'PF' ou 'PJ'
+        contact: contact.replace(/\D/g, ''),
+        birthDate,
+        cep: cep.replace(/\D/g, ''),
+        bairro,
+        cidade,
+        uf,
+        complemento,
+        registeredAt: new Date().toISOString(),
+      };
+
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+
+      Alert.alert('Sucesso! ♻️', `Cadastro concluído, ${nickname}! Bem-vindo ao futuro da reciclagem!`, [
+        { text: 'Vamos reciclar!', onPress: () => navigation.navigate('Main', { screen: 'HomeTab' }) },
+      ]);
+    } catch (error) {
+      Alert.alert('Erro', 'Falha ao salvar cadastro');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -63,33 +162,37 @@ const handleRegister = async () => {
       </View>
 
       <Text style={styles.sectionTitle}>
-        SENSACIONAL! UM NOVO VALOR AO MATERIAL E UM VALOR A MAIS PRO SEU BOLSO AGORA SÓ PRECISAMOS DE ALGUMAS INFORMAÇÕES.
+        FALTAM SÓ ALGUNS DETALHES PRA VOCÊ COMEÇAR A GANHAR DINHEIRO RECICLANDO!
       </Text>
 
       <View style={styles.form}>
         <TextInput
           style={styles.input}
-          placeholder="QUAL SEU CONTATO (não obrigatório)"
+          placeholder="SEU CELULAR (com DDD)"
           value={contact}
-          onChangeText={setContact}
+          onChangeText={(text) => setContact(formatPhone(text))}
           keyboardType="phone-pad"
+          maxLength={15}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="QUAL SUA DATA DE NASCIMENTO?"
+          placeholder="DATA DE NASCIMENTO (dd/mm/aaaa)"
           value={birthDate}
-          onChangeText={setBirthDate}
+          onChangeText={(text) => setBirthDate(formatDate(text))}
           keyboardType="numeric"
+          maxLength={10}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="QUAL SEU CEP?"
+          placeholder="SEU CEP"
           value={cep}
-          onChangeText={setCep}
+          onChangeText={(text) => setCep(formatCEP(text))}
           keyboardType="numeric"
+          maxLength={9}
         />
+        {loading && <ActivityIndicator color={COLORS.primary} style={{ marginVertical: 5 }} />}
 
         <View style={styles.row}>
           <TextInput
@@ -97,18 +200,20 @@ const handleRegister = async () => {
             placeholder="BAIRRO"
             value={bairro}
             onChangeText={setBairro}
+            editable={!loading}
           />
           <TextInput
             style={[styles.input, styles.half]}
             placeholder="CIDADE"
             value={cidade}
             onChangeText={setCidade}
+            editable={!loading}
           />
         </View>
 
         <TextInput
           style={styles.input}
-          placeholder="COMPLEMENTO"
+          placeholder="COMPLEMENTO (opcional)"
           value={complemento}
           onChangeText={setComplemento}
         />
@@ -119,7 +224,7 @@ const handleRegister = async () => {
 
         <TextInput
           style={styles.input}
-          placeholder="CRIE UMA SENHA"
+          placeholder="CRIE UMA SENHA (mín. 8 caracteres)"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -127,7 +232,7 @@ const handleRegister = async () => {
 
         <TextInput
           style={styles.input}
-          placeholder="REPITA SUA SENHA"
+          placeholder="CONFIRME SUA SENHA"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
@@ -138,15 +243,16 @@ const handleRegister = async () => {
         </TouchableOpacity>
       </View>
 
-      {/* MODAL DE DICAS */}
+      {/* Modal de dicas de senha */}
       <Modal visible={showTips} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>DICAS DE SENHA FORTE</Text>
+            <Text style={styles.modalTitle}>DICAS PARA SENHA FORTE</Text>
             <Text style={styles.modalText}>• Mínimo 8 caracteres</Text>
-            <Text style={styles.modalText}>• Use letras maiúsculas e minúsculas</Text>
-            <Text style={styles.modalText}>• Inclua números e símbolos (!@#$)</Text>
-            <Text style={styles.modalText}>• Evite datas ou nomes óbvios</Text>
+            <Text style={styles.modalText}>• Letras maiúsculas e minúsculas</Text>
+            <Text style={styles.modalText}>• Pelo menos 1 número</Text>
+            <Text style={styles.modalText}>• Use símbolos: ! @ # $ % &</Text>
+            <Text style={styles.modalText}>• Evite datas de nascimento</Text>
             <TouchableOpacity style={styles.closeBtn} onPress={() => setShowTips(false)}>
               <Text style={styles.closeText}>FECHAR</Text>
             </TouchableOpacity>
@@ -168,9 +274,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     left: 20,
+    zIndex: 10,
   },
   backText: {
-    fontSize: 28,
+    fontSize: 32,
     color: COLORS.primary,
     fontWeight: 'bold',
   },
@@ -193,8 +300,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.primary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
     fontWeight: 'bold',
+    lineHeight: 22,
   },
   form: {
     flex: 1,
@@ -221,6 +329,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
     marginBottom: 10,
+    marginTop: -5,
   },
   button: {
     backgroundColor: COLORS.primary,
@@ -236,15 +345,15 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modal: {
     backgroundColor: '#fff',
-    padding: 20,
+    padding: 25,
     borderRadius: 15,
-    width: '80%',
+    width: '85%',
     alignItems: 'center',
   },
   modalTitle: {
@@ -254,7 +363,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   modalText: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#333',
     marginBottom: 8,
     textAlign: 'left',
@@ -262,10 +371,10 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginTop: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    marginTop: 20,
   },
   closeText: {
     color: '#fff',

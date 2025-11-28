@@ -7,7 +7,7 @@
     "icon": "./assets/logo-arvore.png",  // Certifique-se de converter karma.jpeg pra PNG quadrado
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/karma.jpeg",  // Converta sticker.webp pra PNG
+      "image": "./assets/splash-icon.png",  // Converta sticker.webp pra PNG
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

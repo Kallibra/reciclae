@@ -36,9 +36,6 @@ export default function RegisterType({ navigation, route }) {
         <Text style={styles.buttonText}>QUERO ME CADASTRAR COMO UMA PESSOA JURÍDICA</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.nextButton}>
-        <Text style={styles.nextText}>VAMOS EM FRENTE</Text>
-      </TouchableOpacity>
     </View>
   );
 }
