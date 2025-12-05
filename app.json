@@ -3,14 +3,35 @@
     "name": "ReciclAÊ",
     "slug": "ReciclAe",
     "version": "1.0.5",
+    "orientation": "portrait",
+    "icon": "./assets/ReciclAE-logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/ChatGPT.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kallibra.ReciclAe"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.kallibra.ReciclAe",
+      "versionCode": 5
+    },
+
+    /* 👇 PLUGINS REMOVIDOS – NÃO NECESSÁRIOS */
+    "plugins": [],
+
     "extra": {
       "eas": {
         "projectId": "063206b3-8edf-45cf-b113-50c6cbf4323d"
       }
-      
-    },
-    "plugins": [
-      "expo-maps"
-    ]
+    }
   }
 }

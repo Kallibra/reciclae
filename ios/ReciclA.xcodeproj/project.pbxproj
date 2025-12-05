@@ -257,7 +257,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.anonymous.ReciclAe";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kallibra.ReciclAe";
 				PRODUCT_NAME = "ReciclA";
 				SWIFT_OBJC_BRIDGING_HEADER = "ReciclA/ReciclA-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -286,7 +286,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.anonymous.ReciclAe";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kallibra.ReciclAe";
 				PRODUCT_NAME = "ReciclA";
 				SWIFT_OBJC_BRIDGING_HEADER = "ReciclA/ReciclA-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
