@@ -1,10 +1,9 @@
-// navigation/BottomTabNavigator.js
+// navigation/BottomTabNavigator.js → VERSÃO FINAL SEM ERRO E ÍCONE FODA!
 import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView } from 'react-native-safe-area-context';   // ← IMPORTANTE
-import { View, ActivityIndicator } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { View } from 'react-native';
 import { COLORS } from '../styles/colors';
 
 import HomeScreen from '../screens/HomeScreen';
@@ -17,59 +16,125 @@ import FeedScreen from '../screens/FeedScreen';
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigator() {
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setUserRole] = useState('producer'); // padrão producer
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    const carregarRole = async () => {
       try {
-        const data = await AsyncStorage.getItem('user');
-        if (data) setUserRole(JSON.parse(data).role);
-      } catch (e) { console.log(e); }
-      finally { setLoading(false); }
-    })();
+        const userData = await AsyncStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          setUserRole(user.role || 'producer');
+        }
+      } catch (e) {
+        console.log('Erro ao carregar role:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    carregarRole();
   }, []);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+    return null; // ou um loading bonito
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-      {/* ↑ Ignora só o bottom → o TabBar cuida dele */}
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: COLORS.primary,
-          tabBarInactiveTintColor: '#888',
-          tabBarStyle: {
-            height: 80,
-            paddingBottom: 20,
-            paddingTop: 10,
-            backgroundColor: '#fff',
-          },
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10,
+          backgroundColor: '#fff',
+          borderTopWidth: 1,
+          borderTopColor: '#eee',
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+      }}
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Início',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon name={focused ? 'home' : 'home-outline'} size={28} color={color} />
+          ),
         }}
-      >
-        {/* suas tabs aqui (igual antes) */}
-        <Tab.Screen name="HomeTab" component={HomeScreen} options={{ tabBarLabel: 'Início', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'home' : 'home-outline'} size={24} color={color} /> }} />
-        <Tab.Screen name="PerfilTab" component={PerfilScreen} options={{ tabBarLabel: 'Perfil', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'person' : 'person-outline'} size={24} color={color} /> }} />
-        <Tab.Screen
-          name="RecicleTab"
-          component={userRole === 'producer' ? AnunciarMaterial : VerAnuncios}
-          options={{
-            tabBarLabel: userRole === 'producer' ? 'Reciclar' : 'Buscar',
-            tabBarIcon: ({focused}) => (
-              <Icon name="leaf" size={28} color="#fff" style={{ backgroundColor: focused ? COLORS.primary : '#ccc', padding: 12, borderRadius: 30 }} />
-            ),
-          }}
-        />
-        <Tab.Screen name="AgendaTab" component={AgendaScreen} options={{ tabBarLabel: 'Agenda', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} /> }} />
-        <Tab.Screen name="FeedTab" component={FeedScreen} options={{ tabBarLabel: 'Feed', tabBarIcon: ({color, focused}) => <Icon name={focused ? 'newspaper' : 'newspaper-outline'} size={24} color={color} /> }} />
-      </Tab.Navigator>
-    </SafeAreaView>
+      />
+
+      <Tab.Screen
+        name="PerfilTab"
+        component={PerfilScreen}
+        options={{
+          tabBarLabel: 'Perfil',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon name={focused ? 'person' : 'person-outline'} size={28} color={color} />
+          ),
+        }}
+      />
+
+      {/* ÍCONE DO MEIO — AGORA É O REI DO APP! */}
+      <Tab.Screen
+        name="AnunciarTab"
+        component={userRole === 'producer' ? AnunciarMaterial : VerAnuncios}
+        options={{
+          tabBarLabel: userRole === 'producer' ? 'Anunciar' : 'Coletar',
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? COLORS.primary : '#e8f5e8',
+                padding: 16,
+                borderRadius: 35,
+                borderWidth: 4,
+                borderColor: '#fff',
+                elevation: 10,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                transform: [{ translateY: -20 }],
+              }}
+            >
+              <Icon
+                name="add-circle"
+                size={48}
+                color={focused ? '#fff' : COLORS.primary}
+              />
+            </View>
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="AgendaTab"
+        component={AgendaScreen}
+        options={{
+          tabBarLabel: 'Agenda',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon name={focused ? 'calendar' : 'calendar-outline'} size={28} color={color} />
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="FeedTab"
+        component={FeedScreen}
+        options={{
+          tabBarLabel: 'Feed',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon name={focused ? 'newspaper' : 'newspaper-outline'} size={28} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 }

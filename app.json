@@ -2,40 +2,15 @@
   "expo": {
     "name": "ReciclAÊ",
     "slug": "ReciclAe",
-    "version": "1.0.2",
-    "orientation": "portrait",
-    "icon": "./assets/logo-arvore.png",  // Certifique-se de converter karma.jpeg pra PNG quadrado
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",  // Converta sticker.webp pra PNG
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": ["**/*"],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ReciclAe"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",  // Converta pra PNG quadrado
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.anonymous.ReciclAe",
-      "versionCode": 3,
-      "androidNavigationBar": {
-        "visible": "immersive"  // Mantido pra esconder barra
-      }
-    },
-    "plugins": [
-      "expo-font",
-      "expo-navigation-bar",  // ← Novo: Habilita androidNavigationBar
-      "expo-system-ui"  // ← Novo: Pra status bar, se precisar adicionar androidStatusBar depois
-    ],
+    "version": "1.0.5",
     "extra": {
       "eas": {
         "projectId": "063206b3-8edf-45cf-b113-50c6cbf4323d"
       }
-    }
+      
+    },
+    "plugins": [
+      "expo-maps"
+    ]
   }
 }

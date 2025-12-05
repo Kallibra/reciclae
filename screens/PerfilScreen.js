@@ -1,4 +1,4 @@
-// screens/PerfilScreen.js
+// screens/PerfilScreen.js → VERSÃO FINAL 100% CORRETA E FUNCIONAL
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -16,17 +16,8 @@ import { COLORS } from '../styles/colors';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { wp, hp, moderateScale } from '../utils/scale';
 
-// IMPORTS DAS NOVAS TELAS (já organizadas na pasta perfil)
-import HistoricoScreen from './perfil/HistoricoScreen';
-import EditarPerfilScreen from './perfil/EditarPerfilScreen';
-import PoliticaPrivacidadeScreen from './perfil/PoliticaPrivacidadeScreen';
-import ConfiguracoesScreen from './perfil/ConfiguracoesScreen';
-import AjudaSuporteScreen from './SobreScreen.js.js';
-import ConvidarAmigosScreen from './perfil/ConvidarAmigosScreen';
-
 export default function PerfilScreen({ navigation }) {
   const [user, setUser] = useState(null);
-  const [activeMenu, setActiveMenu] = useState('historico');
 
   useEffect(() => {
     loadUser();
@@ -37,82 +28,81 @@ export default function PerfilScreen({ navigation }) {
       const data = await AsyncStorage.getItem('user');
       if (data) {
         setUser(JSON.parse(data));
-      } else {
-        const defaultUser = {
-          nickname: 'Valdeliane',
-          role: 'producer',
-          foto: null,
-        };
-        setUser(defaultUser);
       }
     } catch (e) {
-      console.log('Erro ao carregar user:', e);
+      console.log('Erro ao carregar usuário:', e);
     }
   };
 
   const pickImage = async () => {
-    const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (mediaStatus !== 'granted' && cameraStatus !== 'granted') {
-      Alert.alert('Ops!', 'Preciso da permissão pra acessar suas fotos e câmera!');
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão negada', 'Preciso acessar suas fotos!');
       return;
     }
 
+    let result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      const novaFoto = result.assets[0].uri;
+      const updatedUser = { ...user, foto: novaFoto };
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
+  };
+
+  // SAIR DA CONTA → NÃO APAGA O USUÁRIO (só sai da sessão)
+  const sairDaConta = () => {
     Alert.alert(
-      'Escolher foto',
-      'De onde você quer pegar a foto?',
+      'Sair da conta',
+      'Tem certeza que quer sair?',
       [
-        { text: 'Galeria', onPress: () => openPicker('library') },
-        { text: 'Câmera', onPress: () => openPicker('camera') },
         { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: () => {
+            // ← NÃO REMOVE O USUÁRIO! Só volta pro login
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Auth' }],
+            });
+          },
+        },
       ]
     );
   };
 
-  const openPicker = async (source) => {
-    let result;
-    if (source === 'library') {
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-    } else {
-      result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-    }
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
-      const currentUser = user || {};
-      const updatedUser = { ...currentUser, foto: uri };
-
-      try {
-        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        Alert.alert('Sucesso!', 'Foto atualizada com sucesso! 🎉');
-      } catch (e) {
-        Alert.alert('Erro', 'Não foi possível salvar a foto.');
-      }
-    }
-  };
-
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('user');
-    navigation.replace('Auth');
+  // APAGAR CONTA → remove o usuário e volta pro cadastro do zero
+  const apagarConta = async () => {
+    Alert.alert(
+      'Apagar conta permanentemente',
+      'Essa ação não pode ser desfeita!\n\nTodos os seus dados serão excluídos.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar conta',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('user');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Auth' }],
+            });
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: hp(15) }}
-    >
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: hp(15) }}>
+      {/* Foto e dados */}
       <View style={styles.header}>
         <Pressable style={styles.photoContainer} onPress={pickImage}>
           {user?.foto ? (
@@ -123,87 +113,68 @@ export default function PerfilScreen({ navigation }) {
             </View>
           )}
           <View style={styles.cameraOverlay}>
-            <Icon name="camera" size={moderateScale(26)} color="#fff" />
+            <Icon name="camera" size={26} color="#fff" />
           </View>
         </Pressable>
 
         <Text style={styles.name}>{user?.nickname || 'Usuário'}</Text>
         <Text style={styles.type}>
-          {user?.role === 'producer' ? 'Produtor' : 'Sucateiro'}
+          {user?.role === 'producer' ? 'Produtor de Materiais' : 'Sucateiro'}
         </Text>
 
         <View style={styles.stats}>
           <View style={styles.stat}>
-            <Icon name="star" size={moderateScale(22)} color="#ffd700" />
+            <Icon name="star" size={22} color="#ffd700" />
             <Text style={styles.statValue}>4.8</Text>
           </View>
           <View style={styles.stat}>
-            <Icon name="leaf" size={moderateScale(22)} color={COLORS.primary} />
+            <Icon name="leaf" size={22} color={COLORS.primary} />
             <Text style={styles.statValue}>150kg</Text>
           </View>
           <View style={styles.stat}>
-            <Icon name="trophy" size={moderateScale(22)} color="#28a745" />
+            <Icon name="trophy" size={22} color="#28a745" />
             <Text style={styles.statValue}>Top 10</Text>
           </View>
         </View>
       </View>
 
+      {/* Menu */}
       <View style={styles.menu}>
-        <Pressable
-          style={[styles.menuItem, activeMenu === 'historico' && styles.active]}
-          onPress={() => {
-            setActiveMenu('historico');
-            navigation.navigate('Historico');
-          }}
-        >
-          <Icon name="time" size={moderateScale(24)} color={activeMenu === 'historico' ? COLORS.primary : '#666'} />
-          <Text style={[styles.menuText, activeMenu === 'historico' && styles.activeText]}>
-            Histórico
-          </Text>
+        <Pressable style={styles.menuItem} onPress={() => navigation.navigate('EditarPerfil')}>
+          <Icon name="create" size={24} color={COLORS.primary} />
+          <Text style={styles.menuText}>Editar Perfil</Text>
         </Pressable>
 
-        <Pressable
-          style={[styles.menuItem, activeMenu === 'editar' && styles.active]}
-          onPress={() => {
-            setActiveMenu('editar');
-            navigation.navigate('EditarPerfil');
-          }}
-        >
-          <Icon name="create" size={moderateScale(24)} color={activeMenu === 'editar' ? COLORS.primary : '#666'} />
-          <Text style={[styles.menuText, activeMenu === 'editar' && styles.activeText]}>
-            Editar Perfil
-          </Text>
+        <Pressable style={styles.menuItem} onPress={() => navigation.navigate('ConvidarAmigos')}>
+          <Icon name="share-social" size={24} color={COLORS.primary} />
+          <Text style={styles.menuText}>Convidar Amigos</Text>
         </Pressable>
       </View>
 
+      {/* Opções */}
       <View style={styles.options}>
-        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('PoliticaPrivacidade')}>
-          <Icon name="shield-checkmark" size={moderateScale(24)} color="#666" />
+        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('PoliticaPrivacidadeScreen')}>
+          <Icon name="shield-checkmark" size={24} color="#666" />
           <Text style={styles.optionText}>Política de Privacidade</Text>
-          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
+          <Icon name="chevron-forward" size={20} color="#ccc" />
         </Pressable>
 
-        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('Configuracoes')}>
-          <Icon name="settings" size={moderateScale(24)} color="#666" />
-          <Text style={styles.optionText}>Configurações do App</Text>
-          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
-        </Pressable>
-
-        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('AjudaSuporte')}>
-          <Icon name="help-circle" size={moderateScale(24)} color="#666" />
-          <Text style={styles.optionText}>Ajuda e Suporte</Text>
-          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
-        </Pressable>
-
-        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('ConvidarAmigos')}>
-          <Icon name="share-social" size={moderateScale(24)} color="#666" />
-          <Text style={styles.optionText}>Convidar Amigos</Text>
-          <Icon name="chevron-forward" size={moderateScale(20)} color="#ccc" />
+        <Pressable style={styles.optionItem} onPress={() => navigation.navigate('Sobre')}>
+          <Icon name="information-circle" size={24} color="#666" />
+          <Text style={styles.optionText}>Sobre o ReciclAÊ</Text>
+          <Icon name="chevron-forward" size={20} color="#ccc" />
         </Pressable>
       </View>
 
-      <Pressable style={styles.logout} onPress={handleLogout}>
+      {/* Botões finais */}
+      <Pressable style={styles.logout} onPress={sairDaConta}>
+        <Icon name="log-out-outline" size={20} color="#fff" />
         <Text style={styles.logoutText}>Sair da Conta</Text>
+      </Pressable>
+
+      <Pressable style={styles.deleteAccount} onPress={apagarConta}>
+        <Icon name="trash-outline" size={20} color="#dc3545" />
+        <Text style={styles.deleteText}>Apagar Conta Permanentemente</Text>
       </Pressable>
     </ScrollView>
   );
@@ -218,23 +189,9 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
   },
-  photoContainer: {
-    position: 'relative',
-    marginBottom: hp(2),
-  },
-  photo: {
-    width: wp(34),
-    height: wp(34),
-    borderRadius: wp(17),
-    borderWidth: 6,
-    borderColor: '#fff',
-    backgroundColor: '#eee',
-  },
+  photoContainer: { position: 'relative', marginBottom: hp(2) },
+  photo: { width: wp(34), height: wp(34), borderRadius: wp(17), borderWidth: 6, borderColor: '#fff' },
   photoPlaceholder: {
     width: wp(34),
     height: wp(34),
@@ -254,17 +211,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 4,
     borderColor: '#fff',
-    elevation: Platform.OS === 'android' ? 10 : 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
-  name: { fontSize: moderateScale(28), fontWeight: '900', color: COLORS.primary, marginTop: hp(1) },
+  name: { fontSize: moderateScale(28), fontWeight: '900', color: COLORS.primary },
   type: { fontSize: moderateScale(16), color: '#666', marginTop: hp(0.5) },
   stats: { flexDirection: 'row', gap: wp(12), marginTop: hp(2.5) },
   stat: { alignItems: 'center' },
   statValue: { fontSize: moderateScale(16), fontWeight: 'bold', color: COLORS.primary, marginTop: hp(0.5) },
+
   menu: { paddingHorizontal: wp(5), marginTop: hp(3) },
   menuItem: {
     flexDirection: 'row',
@@ -275,9 +228,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
     elevation: 3,
   },
-  active: { backgroundColor: '#f0f8f0', borderWidth: 2, borderColor: COLORS.primary },
-  menuText: { marginLeft: wp(4), fontSize: moderateScale(16), fontWeight: '500' },
-  activeText: { color: COLORS.primary, fontWeight: 'bold' },
+  menuText: { marginLeft: wp(4), fontSize: moderateScale(16), fontWeight: '500', color: '#333' },
+
   options: { paddingHorizontal: wp(5), marginTop: hp(2) },
   optionItem: {
     flexDirection: 'row',
@@ -290,13 +242,31 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionText: { flex: 1, marginLeft: wp(4), fontSize: moderateScale(16), color: '#333' },
+
   logout: {
-    margin: wp(5),
-    backgroundColor: '#dc3545',
+    marginHorizontal: wp(5),
+    marginTop: hp(3),
+    backgroundColor: COLORS.primary,
     paddingVertical: moderateScale(18),
     borderRadius: 14,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
   },
-  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(16) },
+  logoutText: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(16), marginLeft: 10 },
+
+  deleteAccount: {
+    marginHorizontal: wp(5),
+    marginTop: hp(2),
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#dc3545',
+    paddingVertical: moderateScale(18),
+    borderRadius: 14,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteText: { color: '#dc3545', fontWeight: 'bold', fontSize: moderateScale(16), marginLeft: 10 },
 });

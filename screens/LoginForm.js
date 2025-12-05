@@ -48,10 +48,7 @@ export default function LoginForm({ navigation }) {
       />
     
       <TouchableOpacity style={styles.forgot}>
-        <Text style={styles.forgotText} onPress={async () => {
-          await AsyncStorage.removeItem('user');
-          Alert.alert('Senha resetada', 'Você pode se cadastrar novamente');
-        }}>
+        <Text style={styles.forgotText} onPress={() => navigation.navigate('RecuperarSenha')}>
           ESQUECI MINHA SENHA
         </Text>
       </TouchableOpacity>

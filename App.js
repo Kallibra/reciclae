@@ -10,6 +10,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 // TELAS PRINCIPAIS
+import RecuperarSenhaScreen from './screens/RecuperarSenhaScreen';
 import AuthScreen from './screens/AuthScreen';
 import BottomTabNavigator from './navigation/BottomTabNavigator';
 import AnunciarMaterial from './screens/AnunciarMaterial';
@@ -85,6 +86,9 @@ export default function App() {
               <Stack.Screen name="Sobre" component={SobreScreen} options={{ headerShown: false }} />
               <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} options={{ headerShown: false }} />
               <Stack.Screen name="ConvidarAmigos" component={ConvidarAmigosScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="PoliticaPrivacidadeScreen" component={PoliticaPrivacidadeScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="RecuperarSenha" component={RecuperarSenhaScreen} options={{ headerShown: false }} />
+
             </Stack.Navigator>
           </NavigationContainer>
         </View>
